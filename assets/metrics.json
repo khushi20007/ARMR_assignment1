@@ -1,0 +1,33 @@
+{
+  "before": {
+    "file": "vase_high_poly.glb",
+    "triangles": 737280,
+    "vertices": 369889,
+    "draw_calls": 3,
+    "materials": 3,
+    "textures": 0,
+    "file_size_mb": 21.19,
+    "gpu_mem_est_mb": 21.1
+  },
+  "after": {
+    "file": "vase_optimized.glb",
+    "triangles": 6144,
+    "vertices": 3185,
+    "draw_calls": 1,
+    "materials": 1,
+    "textures": 2,
+    "file_size_mb": 0.65,
+    "gpu_mem_est_mb": 10.8,
+    "triangle_reduction_pct": 99.17,
+    "size_reduction_pct": 96.9
+  },
+  "textures": {
+    "diffuse_jpg_mb": 0.08,
+    "normal_png_mb": 0.38,
+    "resolution": 1024
+  },
+  "decimation": {
+    "ratio_triangles": 120.0,
+    "method": "vertex clustering (12x10 cells)"
+  }
+}

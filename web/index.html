@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>ARMR Assignment 1 - WebAR Vase (MindAR + glTF)</title>
+  <!-- Pinned versions. A-Frame supplies the three.js renderer + glTF/Draco loader; MindAR does image tracking. -->
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #000; font-family: system-ui, sans-serif; }
+    #hud { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+           color: #fff; background: linear-gradient(transparent, rgba(0,0,0,.65)); font-size: 14px; pointer-events: none; }
+    #hud b { font-size: 15px; } #status { display: inline-block; margin-top: 4px; padding: 2px 10px; border-radius: 99px; background: #b45309; }
+    #status.on { background: #15803d; } #fps { float: right; font: 12px ui-monospace, monospace; opacity: .9; }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <b>Point your camera at the target image</b><span id="fps"></span><br>
+    <span id="status">Searching for target...</span>
+  </div>
+
+  <!--
+    imageTargetSrc : compiled .mind file (see README step 2)
+    gltf-model     : Draco decoder location - only used if the .glb is Draco-compressed
+    missTolerance / warmupTolerance : frames before target is declared lost / found (stability tuning)
+  -->
+  <a-scene mindar-image="imageTargetSrc: ./assets/targets.mind; maxTrack: 1; missTolerance: 8; warmupTolerance: 3;"
+           gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.6/;"
+           color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights"
+           vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+    <a-assets>
+      <a-asset-item id="vase" src="./assets/vase_optimized_draco.glb"></a-asset-item>
+    </a-assets>
+
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-light type="ambient" intensity="0.9"></a-light>
+    <a-light type="directional" intensity="1.1" position="-1 2 1.5"></a-light>
+
+    <a-entity id="target" mindar-image-target="targetIndex: 0">
+      <!-- target plane is XY (image width = 1 unit); model +Y is up, so tilt 90deg to stand on the card -->
+      <a-entity rotation="90 0 0" position="0 0 0">
+        <a-gltf-model src="#vase" scale="0.26 0.26 0.26" position="0 -0.25 0"
+                      animation="property: rotation; to: 0 360 0; dur: 40000; easing: linear; loop: true"></a-gltf-model>
+      </a-entity>
+    </a-entity>
+  </a-scene>
+
+  <script>
+    // ?model=file.glb  -> swap asset (e.g. the Draco build) without editing code.  ?debug=1 -> A-Frame stats + FPS.
+    const q = new URLSearchParams(location.search);
+    if (q.get("model")) document.getElementById("vase").setAttribute("src", "./assets/" + q.get("model"));
+    const scene = document.querySelector("a-scene"), st = document.getElementById("status"), fpsEl = document.getElementById("fps");
+    const t = document.getElementById("target");
+    t.addEventListener("targetFound", () => { st.textContent = "Target tracked"; st.className = "on"; });
+    t.addEventListener("targetLost",  () => { st.textContent = "Target lost - re-aim camera"; st.className = ""; });
+    if (q.get("debug")) {
+      scene.setAttribute("stats", "");
+      let n = 0, last = performance.now(), log = [];
+      (function loop(now) { n++; if (now - last >= 1000) { fpsEl.textContent = n + " fps"; log.push(n); n = 0; last = now;
+        window.fpsLog = log; } requestAnimationFrame(loop); })(last);
+      // In the console:  fpsLog  ->  per-second FPS samples; copy into the report table.
+    }
+  </script>
+</body>
+</html>
